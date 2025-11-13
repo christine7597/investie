@@ -520,43 +520,111 @@
 
         <!-- 포트폴리오 탭 -->
         <div id="portfolio" class="tab-content">
-            <h2>내 포트폴리오</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">내 포트폴리오</h2>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" onclick="updateAllPrices()" style="background: #28a745;">🔄 전체 가격 업데이트</button>
+                    <button class="btn" onclick="sortPortfolio('profit')" style="background: #667eea;">📊 수익률순 정렬</button>
+                </div>
+            </div>
+            
             <form id="portfolioForm">
-                <div class="form-group">
-                    <label>종목명</label>
-                    <input type="text" id="portfolioName" placeholder="예: 존슨앤존슨 (JNJ)" required>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div class="form-group">
+                        <label>종목명/심볼</label>
+                        <input type="text" id="portfolioName" placeholder="예: JNJ 또는 존슨앤존슨" required>
+                    </div>
+                    <div class="form-group">
+                        <label>매수 가격 (원)</label>
+                        <input type="number" id="portfolioBuyPrice" placeholder="예: 70000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>매수 수량</label>
+                        <input type="number" id="portfolioQuantity" placeholder="예: 10" required>
+                    </div>
+                    <div class="form-group">
+                        <label>현재 가격 (원)</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="number" id="portfolioCurrentPrice" placeholder="자동 조회 또는 수동 입력" style="flex: 1;">
+                            <button type="button" class="btn" onclick="autoFetchPrice()" style="background: #17a2b8; padding: 12px 15px;">🔍 조회</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>매수 가격 (원)</label>
-                    <input type="number" id="portfolioBuyPrice" placeholder="예: 70000" required>
-                </div>
-                <div class="form-group">
-                    <label>매수 수량</label>
-                    <input type="number" id="portfolioQuantity" placeholder="예: 10" required>
-                </div>
-                <div class="form-group">
-                    <label>현재 가격 (원) - 자동 조회 가능</label>
-                    <input type="number" id="portfolioCurrentPrice" placeholder="자동 조회 또는 수동 입력">
-                </div>
-                <button type="submit" class="btn">포트폴리오에 추가</button>
+                <button type="submit" class="btn" id="portfolioSubmitBtn">포트폴리오에 추가</button>
             </form>
+            
+            <!-- 포트폴리오 필터 및 정렬 -->
+            <div style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <label style="font-weight: 600;">정렬:</label>
+                <button class="btn" onclick="sortPortfolio('name')" style="background: #6c757d; padding: 8px 15px; font-size: 0.9em;">이름순</button>
+                <button class="btn" onclick="sortPortfolio('profit')" style="background: #6c757d; padding: 8px 15px; font-size: 0.9em;">수익률순</button>
+                <button class="btn" onclick="sortPortfolio('profitAmount')" style="background: #6c757d; padding: 8px 15px; font-size: 0.9em;">손익순</button>
+                <button class="btn" onclick="sortPortfolio('value')" style="background: #6c757d; padding: 8px 15px; font-size: 0.9em;">가치순</button>
+                <label style="font-weight: 600; margin-left: 20px;">필터:</label>
+                <button class="btn" onclick="filterPortfolio('all')" style="background: #6c757d; padding: 8px 15px; font-size: 0.9em;">전체</button>
+                <button class="btn" onclick="filterPortfolio('profit')" style="background: #28a745; padding: 8px 15px; font-size: 0.9em;">수익</button>
+                <button class="btn" onclick="filterPortfolio('loss')" style="background: #dc3545; padding: 8px 15px; font-size: 0.9em;">손실</button>
+            </div>
+            
             <div id="portfolioList" class="portfolio-list"></div>
         </div>
 
         <!-- 주식 조회 탭 -->
         <div id="stock" class="tab-content">
             <h2>심리학·정신건강 관련 주식 조회</h2>
+            
+            <!-- 빠른 조회 -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px; color: #667eea;">⚡ 빠른 조회</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn" onclick="quickStockLookup('JNJ')" style="background: #667eea;">JNJ</button>
+                    <button class="btn" onclick="quickStockLookup('PFE')" style="background: #667eea;">PFE</button>
+                    <button class="btn" onclick="quickStockLookup('ABBV')" style="background: #667eea;">ABBV</button>
+                    <button class="btn" onclick="quickStockLookup('TDOC')" style="background: #667eea;">TDOC</button>
+                    <button class="btn" onclick="quickStockLookup('CVS')" style="background: #667eea;">CVS</button>
+                    <button class="btn" onclick="quickStockLookup('BIIB')" style="background: #667eea;">BIIB</button>
+                    <button class="btn" onclick="quickStockLookup('NVS')" style="background: #667eea;">NVS</button>
+                </div>
+            </div>
+            
             <form id="stockForm">
                 <div class="form-group">
-                    <label>종목 심볼 (심리학·정신건강 관련 종목)</label>
-                    <input type="text" id="stockSymbol" placeholder="예: JNJ, PFE, TDOC" required>
+                    <label>종목 심볼 (여러 종목은 쉼표로 구분)</label>
+                    <input type="text" id="stockSymbol" placeholder="예: JNJ 또는 JNJ,PFE,TDOC" required>
                     <small style="color: #666; margin-top: 5px; display: block;">
                         추천 종목: JNJ(존슨앤존슨), PFE(화이자), ABBV(애브비), TDOC(텔라독), CVS(CVS헬스), BIIB(바이오젠), NVS(노바티스) 등
+                        <br>여러 종목을 동시에 조회하려면 쉼표로 구분하세요 (예: JNJ,PFE,TDOC)
                     </small>
                 </div>
                 <button type="submit" class="btn">조회하기</button>
             </form>
-            <div id="stockResult"></div>
+            
+            <!-- 즐겨찾기 -->
+            <div style="margin-top: 20px; background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <h4 style="margin-bottom: 10px;">⭐ 즐겨찾기 종목</h4>
+                <div id="favoriteStocks" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+            </div>
+            
+            <div id="stockResult" style="margin-top: 20px;"></div>
+            
+            <!-- 비교 테이블 -->
+            <div id="comparisonTable" style="margin-top: 30px; display: none;">
+                <h3 style="margin-bottom: 15px;">📊 종목 비교</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px;">
+                        <thead>
+                            <tr style="background: #667eea; color: white;">
+                                <th style="padding: 12px; text-align: left;">종목</th>
+                                <th style="padding: 12px; text-align: right;">현재가</th>
+                                <th style="padding: 12px; text-align: right;">변동</th>
+                                <th style="padding: 12px; text-align: right;">변동률</th>
+                                <th style="padding: 12px; text-align: center;">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
             
             <!-- 종목 비교 분석 -->
             <div style="margin-top: 40px;">
@@ -783,6 +851,262 @@
             renderPortfolio();
         }
 
+        function editPortfolio(index) {
+            const item = portfolio[index];
+            document.getElementById('portfolioName').value = item.name;
+            document.getElementById('portfolioBuyPrice').value = item.buyPrice;
+            document.getElementById('portfolioQuantity').value = item.quantity;
+            document.getElementById('portfolioCurrentPrice').value = item.currentPrice;
+            
+            // 삭제하고 새로 추가하는 방식
+            portfolio.splice(index, 1);
+            localStorage.setItem('investie_portfolio', JSON.stringify(portfolio));
+            renderPortfolio();
+            
+            document.getElementById('portfolioSubmitBtn').textContent = '수정 완료';
+            document.getElementById('portfolioSubmitBtn').onclick = function() {
+                document.getElementById('portfolioForm').dispatchEvent(new Event('submit'));
+                document.getElementById('portfolioSubmitBtn').textContent = '포트폴리오에 추가';
+                document.getElementById('portfolioSubmitBtn').onclick = null;
+            };
+        }
+
+        let currentFilter = 'all';
+        let currentSort = 'name';
+
+        function sortPortfolio(sortBy) {
+            currentSort = sortBy;
+            const sorted = [...portfolio].sort((a, b) => {
+                const totalA = a.buyPrice * a.quantity;
+                const totalB = b.buyPrice * b.quantity;
+                const currentA = a.currentPrice * a.quantity;
+                const currentB = b.currentPrice * b.quantity;
+                const profitA = currentA - totalA;
+                const profitB = currentB - totalB;
+                const rateA = (profitA / totalA) * 100;
+                const rateB = (profitB / totalB) * 100;
+
+                switch(sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'profit':
+                        return rateB - rateA;
+                    case 'profitAmount':
+                        return profitB - profitA;
+                    case 'value':
+                        return currentB - currentA;
+                    default:
+                        return 0;
+                }
+            });
+            displayFilteredPortfolio(sorted);
+        }
+
+        function filterPortfolio(filterBy) {
+            currentFilter = filterBy;
+            let filtered = portfolio;
+            
+            if (filterBy === 'profit') {
+                filtered = portfolio.filter(item => {
+                    const totalBuy = item.buyPrice * item.quantity;
+                    const totalCurrent = item.currentPrice * item.quantity;
+                    return totalCurrent > totalBuy;
+                });
+            } else if (filterBy === 'loss') {
+                filtered = portfolio.filter(item => {
+                    const totalBuy = item.buyPrice * item.quantity;
+                    const totalCurrent = item.currentPrice * item.quantity;
+                    return totalCurrent < totalBuy;
+                });
+            }
+            
+            // 정렬 적용
+            if (currentSort !== 'name') {
+                filtered = [...filtered].sort((a, b) => {
+                    const totalA = a.buyPrice * a.quantity;
+                    const totalB = b.buyPrice * b.quantity;
+                    const currentA = a.currentPrice * a.quantity;
+                    const currentB = b.currentPrice * b.quantity;
+                    const profitA = currentA - totalA;
+                    const profitB = currentB - totalB;
+                    const rateA = (profitA / totalA) * 100;
+                    const rateB = (profitB / totalB) * 100;
+
+                    switch(currentSort) {
+                        case 'profit':
+                            return rateB - rateA;
+                        case 'profitAmount':
+                            return profitB - profitA;
+                        case 'value':
+                            return currentB - currentA;
+                        default:
+                            return 0;
+                    }
+                });
+            }
+            
+            displayFilteredPortfolio(filtered);
+        }
+
+        function displayFilteredPortfolio(filteredPortfolio) {
+            const portfolioList = document.getElementById('portfolioList');
+            if (filteredPortfolio.length === 0) {
+                portfolioList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">표시할 항목이 없습니다.</p>';
+                return;
+            }
+
+            portfolioList.innerHTML = filteredPortfolio.map((item, displayIndex) => {
+                const originalIndex = portfolio.findIndex(p => p.name === item.name && p.buyPrice === item.buyPrice);
+                const index = originalIndex >= 0 ? originalIndex : displayIndex;
+                const totalBuy = item.buyPrice * item.quantity;
+                const totalCurrent = item.currentPrice * item.quantity;
+                const profit = totalCurrent - totalBuy;
+                const profitRate = ((totalCurrent - totalBuy) / totalBuy) * 100;
+
+                return `
+                    <div class="portfolio-item">
+                        <div class="portfolio-item-header">
+                            <h3>${item.name}</h3>
+                            <div style="display: flex; gap: 5px;">
+                                <button class="delete-btn" onclick="editPortfolio(${index})" style="background: #17a2b8;">수정</button>
+                                <button class="delete-btn" onclick="deletePortfolio(${index})">삭제</button>
+                            </div>
+                        </div>
+                        <div class="portfolio-stats">
+                            <div class="stat-box">
+                                <div class="label">매수 가격</div>
+                                <div class="value">${item.buyPrice.toLocaleString()}원</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="label">현재 가격</div>
+                                <div class="value">${item.currentPrice.toLocaleString()}원</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="label">수량</div>
+                                <div class="value">${item.quantity}주</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="label">손익</div>
+                                <div class="value ${profit >= 0 ? 'positive' : 'negative'}">
+                                    ${profit >= 0 ? '+' : ''}${profit.toLocaleString()}원
+                                </div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="label">수익률</div>
+                                <div class="value ${profitRate >= 0 ? 'positive' : 'negative'}">
+                                    ${profitRate >= 0 ? '+' : ''}${profitRate.toFixed(2)}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 전체 요약 (필터링된 항목 기준)
+            const totalBuy = filteredPortfolio.reduce((sum, item) => sum + (item.buyPrice * item.quantity), 0);
+            const totalCurrent = filteredPortfolio.reduce((sum, item) => sum + (item.currentPrice * item.quantity), 0);
+            const totalProfit = totalCurrent - totalBuy;
+            const totalProfitRate = totalBuy > 0 ? ((totalCurrent - totalBuy) / totalBuy) * 100 : 0;
+
+            portfolioList.innerHTML += `
+                <div class="portfolio-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-left: 4px solid white;">
+                    <h3 style="color: white; margin-bottom: 15px;">${currentFilter === 'all' ? '전체' : currentFilter === 'profit' ? '수익' : '손실'} 포트폴리오 요약</h3>
+                    <div class="portfolio-stats">
+                        <div class="stat-box" style="background: rgba(255,255,255,0.2);">
+                            <div class="label" style="color: rgba(255,255,255,0.9);">총 투자금액</div>
+                            <div class="value" style="color: white;">${totalBuy.toLocaleString()}원</div>
+                        </div>
+                        <div class="stat-box" style="background: rgba(255,255,255,0.2);">
+                            <div class="label" style="color: rgba(255,255,255,0.9);">총 현재가치</div>
+                            <div class="value" style="color: white;">${totalCurrent.toLocaleString()}원</div>
+                        </div>
+                        <div class="stat-box" style="background: rgba(255,255,255,0.2);">
+                            <div class="label" style="color: rgba(255,255,255,0.9);">총 손익</div>
+                            <div class="value" style="color: ${totalProfit >= 0 ? '#90EE90' : '#FFB6C1'};">${totalProfit >= 0 ? '+' : ''}${totalProfit.toLocaleString()}원</div>
+                        </div>
+                        <div class="stat-box" style="background: rgba(255,255,255,0.2);">
+                            <div class="label" style="color: rgba(255,255,255,0.9);">총 수익률</div>
+                            <div class="value" style="color: ${totalProfitRate >= 0 ? '#90EE90' : '#FFB6C1'};">${totalProfitRate >= 0 ? '+' : ''}${totalProfitRate.toFixed(2)}%</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function autoFetchPrice() {
+            const name = document.getElementById('portfolioName').value.trim();
+            if (!name) {
+                alert('종목명을 먼저 입력해주세요.');
+                return;
+            }
+            
+            // 심볼 추출 (괄호 안의 심볼 또는 전체 이름)
+            const symbolMatch = name.match(/\(([A-Z]+)\)/) || name.match(/\b([A-Z]{2,5})\b/);
+            const symbol = symbolMatch ? symbolMatch[1] : name.split(' ')[0].toUpperCase();
+            
+            const priceInput = document.getElementById('portfolioCurrentPrice');
+            priceInput.disabled = true;
+            priceInput.value = '조회 중...';
+            
+            try {
+                const stockData = await fetchStockPrice(symbol);
+                if (stockData && stockData.price) {
+                    // 달러를 원화로 변환 (대략 1300원 기준)
+                    const priceInKRW = stockData.price * 1300;
+                    priceInput.value = Math.round(priceInKRW);
+                    alert(`현재 가격: $${stockData.price.toFixed(2)} (약 ${Math.round(priceInKRW).toLocaleString()}원)`);
+                } else {
+                    throw new Error('가격 정보를 가져올 수 없습니다.');
+                }
+            } catch (error) {
+                alert('가격 조회에 실패했습니다. 수동으로 입력해주세요.');
+                priceInput.value = '';
+            } finally {
+                priceInput.disabled = false;
+            }
+        }
+
+        async function updateAllPrices() {
+            if (portfolio.length === 0) {
+                alert('포트폴리오가 비어있습니다.');
+                return;
+            }
+            
+            if (!confirm('모든 종목의 현재 가격을 업데이트하시겠습니까?')) {
+                return;
+            }
+            
+            const updateBtn = event.target;
+            updateBtn.disabled = true;
+            updateBtn.textContent = '업데이트 중...';
+            
+            for (let i = 0; i < portfolio.length; i++) {
+                const item = portfolio[i];
+                const symbolMatch = item.name.match(/\(([A-Z]+)\)/) || item.name.match(/\b([A-Z]{2,5})\b/);
+                const symbol = symbolMatch ? symbolMatch[1] : item.name.split(' ')[0].toUpperCase();
+                
+                try {
+                    const stockData = await fetchStockPrice(symbol);
+                    if (stockData && stockData.price) {
+                        const priceInKRW = stockData.price * 1300;
+                        portfolio[i].currentPrice = Math.round(priceInKRW);
+                    }
+                } catch (error) {
+                    console.log(`${item.name} 가격 업데이트 실패:`, error);
+                }
+                
+                // API 호출 제한을 위한 지연
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            localStorage.setItem('investie_portfolio', JSON.stringify(portfolio));
+            renderPortfolio();
+            
+            updateBtn.disabled = false;
+            updateBtn.textContent = '🔄 전체 가격 업데이트';
+            alert('가격 업데이트가 완료되었습니다.');
+        }
+
         document.getElementById('portfolioForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('portfolioName').value;
@@ -802,76 +1126,153 @@
             renderPortfolio();
         });
 
-        // 주식 조회
+        // 즐겨찾기 관리
+        let favoriteStocks = JSON.parse(localStorage.getItem('investie_favorites')) || [];
+        
+        function loadFavorites() {
+            const favoriteDiv = document.getElementById('favoriteStocks');
+            if (favoriteStocks.length === 0) {
+                favoriteDiv.innerHTML = '<p style="color: #666; font-size: 0.9em;">즐겨찾기 종목이 없습니다.</p>';
+                return;
+            }
+            
+            favoriteDiv.innerHTML = favoriteStocks.map(symbol => `
+                <button class="btn" onclick="quickStockLookup('${symbol}')" style="background: #ffc107; color: #333;">
+                    ${symbol} ⭐
+                </button>
+            `).join('');
+        }
+
+        function addToFavorites(symbol) {
+            if (!favoriteStocks.includes(symbol)) {
+                favoriteStocks.push(symbol);
+                localStorage.setItem('investie_favorites', JSON.stringify(favoriteStocks));
+                loadFavorites();
+            }
+        }
+
+        function removeFromFavorites(symbol) {
+            favoriteStocks = favoriteStocks.filter(s => s !== symbol);
+            localStorage.setItem('investie_favorites', JSON.stringify(favoriteStocks));
+            loadFavorites();
+        }
+
+        // 빠른 조회
+        function quickStockLookup(symbol) {
+            document.getElementById('stockSymbol').value = symbol;
+            document.getElementById('stockForm').dispatchEvent(new Event('submit'));
+        }
+
+        // 주식 조회 (여러 종목 지원)
         document.getElementById('stockForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const symbol = document.getElementById('stockSymbol').value.toUpperCase();
+            const symbolsInput = document.getElementById('stockSymbol').value.toUpperCase().trim();
+            const symbols = symbolsInput.split(',').map(s => s.trim()).filter(s => s);
             const resultDiv = document.getElementById('stockResult');
+            const comparisonTable = document.getElementById('comparisonTable');
+            const comparisonBody = document.getElementById('comparisonTableBody');
             
             resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>주식 정보를 조회하는 중...</div>';
+            comparisonTable.style.display = 'none';
 
             try {
-                // Yahoo Finance API 사용 (무료, CORS 프록시 필요)
-                // 실제로는 서버 사이드에서 호출하거나 CORS 프록시를 사용해야 함
-                // 여기서는 간단한 예시로 구현
-                
-                // 한국 주식인지 확인 (숫자로 시작)
-                const isKoreanStock = /^\d+$/.test(symbol);
-                
-                if (isKoreanStock) {
-                    // 한국 주식은 다른 API 사용 필요 (예: 한국투자증권 API 등)
-                    // 여기서는 예시로만 구현
-                    resultDiv.innerHTML = `
-                        <div class="error">
-                            한국 주식 조회는 별도 API가 필요합니다. 
-                            현재는 미국 주식(JNJ, PFE, TDOC 등)만 지원합니다.
-                        </div>
-                    `;
-                    return;
-                }
+                if (symbols.length === 1) {
+                    // 단일 종목 조회
+                    const symbol = symbols[0];
+                    const isKoreanStock = /^\d+$/.test(symbol);
+                    
+                    if (isKoreanStock) {
+                        resultDiv.innerHTML = `
+                            <div class="error">
+                                한국 주식 조회는 별도 API가 필요합니다. 
+                                현재는 미국 주식(JNJ, PFE, TDOC 등)만 지원합니다.
+                            </div>
+                        `;
+                        return;
+                    }
 
-                // 미국 주식 조회 (Yahoo Finance API)
-                // CORS 문제로 인해 직접 호출이 어려우므로, 
-                // 여기서는 예시 데이터를 사용하거나 프록시를 통해 호출
-                
-                // 실제 구현을 위해 무료 API 사용 (예: Alpha Vantage, Finnhub 등)
-                // 여기서는 간단한 예시로 구현
-                
-                // Finnhub API 사용 (무료 티어 있음, API 키 필요)
-                // 또는 Yahoo Finance를 위한 CORS 프록시 사용
-                
-                // 주식 정보 조회 (여러 프록시 시도)
-                const stockData = await fetchStockPrice(symbol);
-                
-                if (stockData && stockData.price) {
-                    resultDiv.innerHTML = `
-                        <div class="result-card">
-                            <h3>${symbol} 주식 정보</h3>
-                            <div class="stock-info">
-                                <div class="info-card">
-                                    <div class="label">현재 가격</div>
-                                    <div class="value">$${stockData.price.toFixed(2)}</div>
+                    const stockData = await fetchStockPrice(symbol);
+                    
+                    if (stockData && stockData.price) {
+                        resultDiv.innerHTML = `
+                            <div class="result-card">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h3>${symbol} 주식 정보</h3>
+                                    <button class="btn" onclick="addToFavorites('${symbol}')" style="background: #ffc107; padding: 8px 15px;">
+                                        ${favoriteStocks.includes(symbol) ? '⭐ 즐겨찾기 해제' : '⭐ 즐겨찾기 추가'}
+                                    </button>
                                 </div>
-                                <div class="info-card">
-                                    <div class="label">전일 대비</div>
-                                    <div class="value ${stockData.change >= 0 ? 'positive' : 'negative'}">
-                                        ${stockData.change >= 0 ? '+' : ''}$${stockData.change.toFixed(2)}
+                                <div class="stock-info">
+                                    <div class="info-card">
+                                        <div class="label">현재 가격</div>
+                                        <div class="value">$${stockData.price.toFixed(2)}</div>
+                                    </div>
+                                    <div class="info-card">
+                                        <div class="label">전일 대비</div>
+                                        <div class="value ${stockData.change >= 0 ? 'positive' : 'negative'}">
+                                            ${stockData.change >= 0 ? '+' : ''}$${stockData.change.toFixed(2)}
+                                        </div>
+                                    </div>
+                                    <div class="info-card">
+                                        <div class="label">변동률</div>
+                                        <div class="value ${stockData.changePercent >= 0 ? 'positive' : 'negative'}">
+                                            ${stockData.changePercent >= 0 ? '+' : ''}${stockData.changePercent.toFixed(2)}%
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="info-card">
-                                    <div class="label">변동률</div>
-                                    <div class="value ${stockData.changePercent >= 0 ? 'positive' : 'negative'}">
-                                        ${stockData.changePercent >= 0 ? '+' : ''}${stockData.changePercent.toFixed(2)}%
-                                    </div>
+                                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 0.9em; color: #666;">
+                                    💡 실시간 데이터 조회가 실패할 수 있습니다. 여러 프록시를 시도하고 있습니다.
                                 </div>
                             </div>
-                            <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 0.9em; color: #666;">
-                                💡 실시간 데이터 조회가 실패할 수 있습니다. 여러 프록시를 시도하고 있습니다.
-                            </div>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        throw new Error('주식 정보를 조회할 수 없습니다.');
+                    }
                 } else {
-                    throw new Error('주식 정보를 조회할 수 없습니다.');
+                    // 여러 종목 조회 (비교 테이블)
+                    const stockDataList = [];
+                    
+                    for (const symbol of symbols) {
+                        try {
+                            const stockData = await fetchStockPrice(symbol);
+                            if (stockData && stockData.price) {
+                                stockDataList.push({ symbol, ...stockData });
+                            }
+                        } catch (error) {
+                            console.log(`${symbol} 조회 실패:`, error);
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                    if (stockDataList.length > 0) {
+                        resultDiv.innerHTML = `
+                            <div class="result-card">
+                                <h3>${stockDataList.length}개 종목 조회 완료</h3>
+                                <p style="color: #666;">아래 비교 테이블을 확인하세요.</p>
+                            </div>
+                        `;
+                        
+                        comparisonTable.style.display = 'block';
+                        comparisonBody.innerHTML = stockDataList.map(data => `
+                            <tr style="border-bottom: 1px solid #e0e0e0;">
+                                <td style="padding: 12px; font-weight: 600;">${data.symbol}</td>
+                                <td style="padding: 12px; text-align: right;">$${data.price.toFixed(2)}</td>
+                                <td style="padding: 12px; text-align: right; color: ${data.change >= 0 ? '#28a745' : '#dc3545'};">
+                                    ${data.change >= 0 ? '+' : ''}$${data.change.toFixed(2)}
+                                </td>
+                                <td style="padding: 12px; text-align: right; color: ${data.changePercent >= 0 ? '#28a745' : '#dc3545'};">
+                                    ${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(2)}%
+                                </td>
+                                <td style="padding: 12px; text-align: center;">
+                                    <button class="btn" onclick="addToFavorites('${data.symbol}')" style="background: #ffc107; padding: 5px 10px; font-size: 0.85em;">
+                                        ${favoriteStocks.includes(data.symbol) ? '⭐' : '☆'}
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        throw new Error('주식 정보를 조회할 수 없습니다.');
+                    }
                 }
             } catch (error) {
                 resultDiv.innerHTML = `
@@ -886,6 +1287,9 @@
                 `;
             }
         });
+
+        // 즐겨찾기 초기 로드
+        loadFavorites();
 
         // 환율 조회
         document.getElementById('exchangeForm').addEventListener('submit', async (e) => {
