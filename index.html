@@ -1020,8 +1020,20 @@
 
             const stocksData = await Promise.all(stockPromises);
 
-            stocksDiv.innerHTML = stocksData.map(stock => {
-                if (stock.price) {
+            // 시장 개요 업데이트
+            updateMarketOverview(stocksData);
+
+            stocksDiv.innerHTML = stocksData.map((stock, index) => {
+                if (stock.price && stock.price > 0) {
+                    const history = getPriceHistory(stock.symbol);
+                    const prices = history.map(h => h.price);
+                    const chartId = `chart_${stock.symbol}`;
+                    
+                    // 차트를 그리기 위해 약간의 지연
+                    setTimeout(() => {
+                        drawChart(chartId, prices);
+                    }, 100);
+                    
                     return `
                         <div class="stock-card">
                             <div class="symbol">${stock.symbol}</div>
@@ -1031,6 +1043,9 @@
                                 ${stock.change >= 0 ? '+' : ''}$${stock.change.toFixed(2)} 
                                 (${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%)
                             </div>
+                            <div class="stock-chart">
+                                <canvas id="${chartId}" class="chart-canvas"></canvas>
+                            </div>
                         </div>
                     `;
                 } else {
@@ -1039,14 +1054,66 @@
                             <div class="symbol">${stock.symbol}</div>
                             <div class="name">${stock.name}</div>
                             <div class="price" style="color: #999;">조회 실패</div>
+                            <div style="font-size: 0.8em; color: #999; margin-top: 5px;">API 연결 문제</div>
                         </div>
                     `;
                 }
             }).join('');
+            
+            // 조회 실패한 종목이 있으면 안내 메시지
+            const failedCount = stocksData.filter(s => !s.price || s.price <= 0).length;
+            if (failedCount > 0) {
+                stocksDiv.innerHTML += `
+                    <div style="grid-column: 1 / -1; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107; margin-top: 10px;">
+                        <strong>⚠️ 참고:</strong> ${failedCount}개 종목의 실시간 조회가 실패했습니다. 
+                        무료 API의 한계로 인해 발생할 수 있습니다. 
+                        데모용으로는 수동으로 가격을 입력하거나 나중에 다시 시도해주세요.
+                    </div>
+                `;
+            }
+
+            // 마지막 업데이트 시간 표시
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR');
         }
 
-        // 페이지 로드 시 추천 종목 자동 로드
-        loadRecommendedStocks();
+        // 시장 개요 업데이트
+        function updateMarketOverview(stocksData) {
+            const validStocks = stocksData.filter(s => s.price && s.price > 0);
+            if (validStocks.length === 0) {
+                document.getElementById('marketOverview').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('marketOverview').style.display = 'block';
+            
+            const avgChange = validStocks.reduce((sum, s) => sum + s.changePercent, 0) / validStocks.length;
+            const gainers = validStocks.filter(s => s.changePercent > 0).length;
+            const losers = validStocks.filter(s => s.changePercent < 0).length;
+
+            document.getElementById('avgChange').textContent = `${avgChange >= 0 ? '+' : ''}${avgChange.toFixed(2)}%`;
+            document.getElementById('gainers').textContent = `${gainers}개`;
+            document.getElementById('losers').textContent = `${losers}개`;
+        }
+
+        // 자동 업데이트 설정
+        let updateInterval = null;
+        
+        function startAutoUpdate() {
+            // 즉시 로드
+            loadRecommendedStocks();
+            
+            // 30초마다 자동 업데이트
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            updateInterval = setInterval(() => {
+                loadRecommendedStocks();
+            }, 30000); // 30초
+        }
+
+        // 페이지 로드 시 추천 종목 자동 로드 및 자동 업데이트 시작
+        startAutoUpdate();
     </script>
 </body>
 </html>
