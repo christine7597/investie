@@ -477,10 +477,38 @@
                 </div>
             </div>
 
-            <!-- 추천 종목 현황 -->
+            <!-- 투자 인사이트 -->
             <div style="margin-top: 40px;">
+                <h2 style="margin-bottom: 20px;">💡 투자 인사이트 & 시장 트렌드</h2>
+                <div id="investmentInsights" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px;">
+                        <h3 style="margin-bottom: 10px; font-size: 1.2em;">📈 시장 트렌드</h3>
+                        <p style="opacity: 0.9; line-height: 1.6;">
+                            심리학·정신건강 섹터는 지속적인 성장세를 보이고 있습니다. 
+                            디지털 헬스케어와 원격 치료 서비스의 확산으로 관련 기업들의 성장 가능성이 높습니다.
+                        </p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px;">
+                        <h3 style="margin-bottom: 10px; font-size: 1.2em;">⚖️ 포트폴리오 구성 가이드</h3>
+                        <p style="opacity: 0.9; line-height: 1.6;">
+                            <strong>권장 비중:</strong><br>
+                            • 대형 제약사 (JNJ, PFE): 40%<br>
+                            • 디지털 헬스 (TDOC): 30%<br>
+                            • 바이오텍 (BIIB, ABBV): 30%
+                        </p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 12px;">
+                        <h3 style="margin-bottom: 10px; font-size: 1.2em;">⚠️ 리스크 관리</h3>
+                        <p style="opacity: 0.9; line-height: 1.6;">
+                            • 규제 리스크: FDA 승인 지연 가능성<br>
+                            • 시장 변동성: 높은 변동성 대비 충분한 현금 보유<br>
+                            • 분산 투자: 단일 종목 집중 투자 지양
+                        </p>
+                    </div>
+                </div>
+                
                 <h2 style="margin-bottom: 20px;">
-                    📊 추천 종목 현황 
+                    📊 시장 현황 요약 
                     <span class="auto-update-indicator" id="updateIndicator"></span>
                     <span style="font-size: 0.7em; color: #666; font-weight: normal;">(30초마다 자동 업데이트)</span>
                 </h2>
@@ -530,9 +558,37 @@
             </form>
             <div id="stockResult"></div>
             
-            <!-- 추천 종목 미리보기 -->
+            <!-- 종목 비교 분석 -->
             <div style="margin-top: 40px;">
-                <h2 style="margin-bottom: 20px;">📊 추천 종목 미리보기</h2>
+                <h2 style="margin-bottom: 20px;">📊 종목 비교 분석</h2>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">💡 투자 전략 가이드</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                            <strong style="color: #28a745;">🟢 안정형</strong>
+                            <p style="margin-top: 8px; color: #666; font-size: 0.9em;">
+                                JNJ, PFE, CVS<br>
+                                낮은 변동성, 안정적 배당
+                            </p>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                            <strong style="color: #ffc107;">🟡 성장형</strong>
+                            <p style="margin-top: 8px; color: #666; font-size: 0.9em;">
+                                TDOC, ABBV<br>
+                                높은 성장 잠재력
+                            </p>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545;">
+                            <strong style="color: #dc3545;">🔴 공격형</strong>
+                            <p style="margin-top: 8px; color: #666; font-size: 0.9em;">
+                                BIIB<br>
+                                높은 변동성, 높은 수익 가능성
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 15px; color: #333;">🔍 추천 종목 상세 분석</h3>
                 <div id="previewStocks" class="recommended-stocks-grid">
                     <div class="loading"><div class="spinner"></div>주식 정보를 불러오는 중...</div>
                 </div>
@@ -1139,11 +1195,19 @@
 
             const stocksData = await Promise.all(stockPromises);
 
+            // 주식 조회 탭용: 상세 분석 정보 포함
             previewDiv.innerHTML = stocksData.map((stock, index) => {
                 if (stock.price && stock.price > 0) {
                     const history = getPriceHistory(stock.symbol);
                     const prices = history.map(h => h.price);
                     const chartId = `preview_chart_${stock.symbol}`;
+                    
+                    // 상세 분석 데이터
+                    const volatility = calculateVolatility(prices);
+                    const trend = getTrend(prices);
+                    const priceRange = getPriceRange(prices);
+                    const riskLevel = getRiskLevel(volatility, stock.changePercent);
+                    const investmentType = getInvestmentType(stock.symbol);
                     
                     // 차트를 그리기 위해 약간의 지연
                     setTimeout(() => {
@@ -1152,7 +1216,12 @@
                     
                     return `
                         <div class="stock-card" style="cursor: pointer;" onclick="document.getElementById('stockSymbol').value='${stock.symbol}'; document.getElementById('stockForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));">
-                            <div class="symbol">${stock.symbol}</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div class="symbol">${stock.symbol}</div>
+                                <span style="background: ${riskLevel.color}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.75em;">
+                                    ${riskLevel.label}
+                                </span>
+                            </div>
                             <div class="name">${stock.name}</div>
                             <div class="price">$${stock.price.toFixed(2)}</div>
                             <div class="change ${stock.change >= 0 ? 'positive' : 'negative'}">
@@ -1162,8 +1231,20 @@
                             <div class="stock-chart">
                                 <canvas id="${chartId}" class="chart-canvas"></canvas>
                             </div>
-                            <div style="margin-top: 10px; font-size: 0.8em; color: #667eea; text-align: center;">
-                                클릭하여 상세 정보 보기
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0; font-size: 0.85em;">
+                                <div style="color: #666; margin-bottom: 5px;">
+                                    <strong>투자 유형:</strong> ${investmentType}
+                                </div>
+                                <div style="color: #666; margin-bottom: 5px;">
+                                    <strong>가격 범위:</strong> $${priceRange.min.toFixed(2)} - $${priceRange.max.toFixed(2)}
+                                </div>
+                                <div style="color: #666;">
+                                    <strong>추세:</strong> ${trend === 'up' ? '📈 상승' : trend === 'down' ? '📉 하락' : '➡️ 횡보'}
+                                    ${volatility > 0 ? ` | 변동성: ${volatility.toFixed(1)}%` : ''}
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 0.8em; color: #667eea; text-align: center; font-weight: 600;">
+                                클릭하여 상세 정보 보기 →
                             </div>
                         </div>
                     `;
@@ -1178,6 +1259,62 @@
                     `;
                 }
             }).join('');
+        }
+
+        // 변동성 계산
+        function calculateVolatility(prices) {
+            if (prices.length < 2) return 0;
+            const returns = [];
+            for (let i = 1; i < prices.length; i++) {
+                returns.push((prices[i] - prices[i-1]) / prices[i-1] * 100);
+            }
+            const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+            const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+            return Math.sqrt(variance);
+        }
+
+        // 추세 분석
+        function getTrend(prices) {
+            if (prices.length < 3) return 'neutral';
+            const recent = prices.slice(-3);
+            if (recent[2] > recent[0]) return 'up';
+            if (recent[2] < recent[0]) return 'down';
+            return 'neutral';
+        }
+
+        // 가격 범위
+        function getPriceRange(prices) {
+            if (prices.length === 0) return { min: 0, max: 0 };
+            return {
+                min: Math.min(...prices),
+                max: Math.max(...prices)
+            };
+        }
+
+        // 리스크 레벨
+        function getRiskLevel(volatility, changePercent) {
+            const riskScore = Math.abs(volatility) + Math.abs(changePercent);
+            if (riskScore < 2) {
+                return { label: '낮은 리스크', color: '#28a745' };
+            } else if (riskScore < 5) {
+                return { label: '보통 리스크', color: '#ffc107' };
+            } else {
+                return { label: '높은 리스크', color: '#dc3545' };
+            }
+        }
+
+        // 투자 유형
+        function getInvestmentType(symbol) {
+            const types = {
+                'JNJ': '안정형 (대형 제약)',
+                'PFE': '안정형 (대형 제약)',
+                'CVS': '안정형 (헬스케어)',
+                'NVS': '안정형 (대형 제약)',
+                'ABBV': '성장형 (바이오텍)',
+                'TDOC': '성장형 (디지털 헬스)',
+                'BIIB': '공격형 (바이오텍)'
+            };
+            return types[symbol] || '일반';
         }
 
         // 페이지 로드 시 추천 종목 자동 로드 및 자동 업데이트 시작
