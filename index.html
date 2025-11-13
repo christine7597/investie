@@ -332,6 +332,85 @@
             font-size: 0.9em;
         }
 
+        .stock-chart {
+            width: 100%;
+            height: 80px;
+            margin-top: 15px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+            padding: 5px;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .auto-update-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .live-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .market-overview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .market-overview h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .market-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .market-stat {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .market-stat .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .market-stat .value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
         .stock-card .change.positive {
             color: #28a745;
         }
@@ -375,9 +454,36 @@
             </form>
             <div id="calculatorResult"></div>
             
+            <!-- 시장 개요 -->
+            <div class="market-overview" id="marketOverview" style="display: none;">
+                <h3>📈 실시간 시장 개요 <span class="live-badge">LIVE</span></h3>
+                <div class="market-stats">
+                    <div class="market-stat">
+                        <div class="label">평균 변동률</div>
+                        <div class="value" id="avgChange">-</div>
+                    </div>
+                    <div class="market-stat">
+                        <div class="label">상승 종목</div>
+                        <div class="value" id="gainers">-</div>
+                    </div>
+                    <div class="market-stat">
+                        <div class="label">하락 종목</div>
+                        <div class="value" id="losers">-</div>
+                    </div>
+                    <div class="market-stat">
+                        <div class="label">마지막 업데이트</div>
+                        <div class="value" id="lastUpdate" style="font-size: 1em;">-</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 추천 종목 현황 -->
             <div style="margin-top: 40px;">
-                <h2 style="margin-bottom: 20px;">📊 추천 종목 현황</h2>
+                <h2 style="margin-bottom: 20px;">
+                    📊 추천 종목 현황 
+                    <span class="auto-update-indicator" id="updateIndicator"></span>
+                    <span style="font-size: 0.7em; color: #666; font-weight: normal;">(30초마다 자동 업데이트)</span>
+                </h2>
                 <div id="recommendedStocks" class="recommended-stocks-grid">
                     <div class="loading"><div class="spinner"></div>주식 정보를 불러오는 중...</div>
                 </div>
@@ -783,6 +889,62 @@
             { symbol: 'NVS', name: '노바티스' }
         ];
 
+        // 가격 히스토리 저장 (localStorage)
+        function savePriceHistory(symbol, price) {
+            const key = `stock_history_${symbol}`;
+            let history = JSON.parse(localStorage.getItem(key) || '[]');
+            const now = Date.now();
+            
+            history.push({ price: price, timestamp: now });
+            
+            // 최근 20개 데이터만 유지
+            if (history.length > 20) {
+                history = history.slice(-20);
+            }
+            
+            localStorage.setItem(key, JSON.stringify(history));
+        }
+
+        // 가격 히스토리 가져오기
+        function getPriceHistory(symbol) {
+            const key = `stock_history_${symbol}`;
+            return JSON.parse(localStorage.getItem(key) || '[]');
+        }
+
+        // 간단한 차트 그리기
+        function drawChart(canvasId, prices) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || prices.length < 2) return;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.offsetWidth;
+            const height = canvas.height = canvas.offsetHeight;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const range = maxPrice - minPrice || 1;
+            const padding = 10;
+            
+            ctx.strokeStyle = prices[prices.length - 1] >= prices[0] ? '#28a745' : '#dc3545';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            prices.forEach((price, index) => {
+                const x = padding + (index / (prices.length - 1)) * (width - padding * 2);
+                const y = height - padding - ((price - minPrice) / range) * (height - padding * 2);
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+        }
+
         // 주식 정보 조회 함수 (여러 프록시 시도)
         async function fetchStockPrice(symbol) {
             // 여러 프록시 옵션
@@ -820,6 +982,9 @@
                         const change = (quote.regularMarketPrice || quote.previousClose) - quote.previousClose;
                         const changePercent = (change / quote.previousClose) * 100;
                         
+                        // 가격 히스토리 저장
+                        savePriceHistory(symbol, price);
+                        
                         return {
                             price: price,
                             change: change,
@@ -834,8 +999,10 @@
 
             // 모든 프록시 실패 시 예시 데이터 반환 (데모용)
             console.warn(`All proxies failed for ${symbol}, using demo data`);
+            const demoPrice = 100 + Math.random() * 50;
+            savePriceHistory(symbol, demoPrice);
             return {
-                price: 100 + Math.random() * 50, // 예시 가격
+                price: demoPrice,
                 change: (Math.random() - 0.5) * 5,
                 changePercent: (Math.random() - 0.5) * 5
             };
