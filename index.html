@@ -529,6 +529,14 @@
                 <button type="submit" class="btn">조회하기</button>
             </form>
             <div id="stockResult"></div>
+            
+            <!-- 추천 종목 미리보기 -->
+            <div style="margin-top: 40px;">
+                <h2 style="margin-bottom: 20px;">📊 추천 종목 미리보기</h2>
+                <div id="previewStocks" class="recommended-stocks-grid">
+                    <div class="loading"><div class="spinner"></div>주식 정보를 불러오는 중...</div>
+                </div>
+            </div>
         </div>
 
         <!-- 환율 조회 탭 -->
@@ -578,6 +586,11 @@
             });
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
+            
+            // 주식 조회 탭으로 전환 시 미리보기 로드
+            if (tabName === 'stock') {
+                loadPreviewStocks();
+            }
         }
 
         // 투자 계산기
@@ -1110,6 +1123,61 @@
             updateInterval = setInterval(() => {
                 loadRecommendedStocks();
             }, 30000); // 30초
+        }
+
+        // 추천 종목 미리보기 로드 (주식 조회 탭용)
+        async function loadPreviewStocks() {
+            const previewDiv = document.getElementById('previewStocks');
+            if (!previewDiv) return;
+            
+            previewDiv.innerHTML = '<div class="loading"><div class="spinner"></div>주식 정보를 불러오는 중...</div>';
+
+            const stockPromises = recommendedStocks.map(async (stock) => {
+                const data = await fetchStockPrice(stock.symbol);
+                return { ...stock, ...data };
+            });
+
+            const stocksData = await Promise.all(stockPromises);
+
+            previewDiv.innerHTML = stocksData.map((stock, index) => {
+                if (stock.price && stock.price > 0) {
+                    const history = getPriceHistory(stock.symbol);
+                    const prices = history.map(h => h.price);
+                    const chartId = `preview_chart_${stock.symbol}`;
+                    
+                    // 차트를 그리기 위해 약간의 지연
+                    setTimeout(() => {
+                        drawChart(chartId, prices);
+                    }, 100);
+                    
+                    return `
+                        <div class="stock-card" style="cursor: pointer;" onclick="document.getElementById('stockSymbol').value='${stock.symbol}'; document.getElementById('stockForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));">
+                            <div class="symbol">${stock.symbol}</div>
+                            <div class="name">${stock.name}</div>
+                            <div class="price">$${stock.price.toFixed(2)}</div>
+                            <div class="change ${stock.change >= 0 ? 'positive' : 'negative'}">
+                                ${stock.change >= 0 ? '+' : ''}$${stock.change.toFixed(2)} 
+                                (${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%)
+                            </div>
+                            <div class="stock-chart">
+                                <canvas id="${chartId}" class="chart-canvas"></canvas>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 0.8em; color: #667eea; text-align: center;">
+                                클릭하여 상세 정보 보기
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="stock-card">
+                            <div class="symbol">${stock.symbol}</div>
+                            <div class="name">${stock.name}</div>
+                            <div class="price" style="color: #999;">조회 실패</div>
+                            <div style="font-size: 0.8em; color: #999; margin-top: 5px;">API 연결 문제</div>
+                        </div>
+                    `;
+                }
+            }).join('');
         }
 
         // 페이지 로드 시 추천 종목 자동 로드 및 자동 업데이트 시작
