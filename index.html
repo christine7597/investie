@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Investie - Financial Investment Aid</title>
+    <title>Investie - Psychology & Mental Health Investment Tracker</title>
     <style>
         * {
             margin: 0;
@@ -292,8 +292,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>💰 Investie</h1>
-            <p>Financial Investment Aid - 투자 도우미</p>
+            <h1>🧠 Investie</h1>
+            <p>Psychology & Mental Health Investment Tracker - 심리학·정신건강 투자 추적기</p>
         </div>
 
         <div class="tabs">
@@ -330,7 +330,7 @@
             <form id="portfolioForm">
                 <div class="form-group">
                     <label>종목명</label>
-                    <input type="text" id="portfolioName" placeholder="예: 삼성전자" required>
+                    <input type="text" id="portfolioName" placeholder="예: 존슨앤존슨 (JNJ)" required>
                 </div>
                 <div class="form-group">
                     <label>매수 가격 (원)</label>
@@ -351,13 +351,13 @@
 
         <!-- 주식 조회 탭 -->
         <div id="stock" class="tab-content">
-            <h2>주식 가격 조회</h2>
+            <h2>심리학·정신건강 관련 주식 조회</h2>
             <form id="stockForm">
                 <div class="form-group">
-                    <label>종목 심볼 (예: AAPL, TSLA, 005930)</label>
-                    <input type="text" id="stockSymbol" placeholder="예: AAPL" required>
+                    <label>종목 심볼 (심리학·정신건강 관련 종목)</label>
+                    <input type="text" id="stockSymbol" placeholder="예: JNJ, PFE, TDOC" required>
                     <small style="color: #666; margin-top: 5px; display: block;">
-                        미국 주식: AAPL, TSLA, MSFT 등 | 한국 주식: 005930(삼성전자), 000660(SK하이닉스) 등
+                        추천 종목: JNJ(존슨앤존슨), PFE(화이자), ABBV(애브비), TDOC(텔라독), CVS(CVS헬스), BIIB(바이오젠), NVS(노바티스) 등
                     </small>
                 </div>
                 <button type="submit" class="btn">조회하기</button>
@@ -589,7 +589,7 @@
                     resultDiv.innerHTML = `
                         <div class="error">
                             한국 주식 조회는 별도 API가 필요합니다. 
-                            현재는 미국 주식(AAPL, TSLA 등)만 지원합니다.
+                            현재는 미국 주식(JNJ, PFE, TDOC 등)만 지원합니다.
                         </div>
                     `;
                     return;
@@ -657,7 +657,7 @@
                 resultDiv.innerHTML = `
                     <div class="error">
                         주식 정보를 조회할 수 없습니다. 
-                        <br>종목 심볼을 확인해주세요. (예: AAPL, TSLA, MSFT)
+                        <br>종목 심볼을 확인해주세요. (예: JNJ, PFE, TDOC, ABBV)
                         <br><small>오류: ${error.message}</small>
                     </div>
                 `;
@@ -726,4 +726,5 @@
     </script>
 </body>
 </html>
+
 
