@@ -765,10 +765,53 @@
         // 포트폴리오 관리
         let portfolio = JSON.parse(localStorage.getItem('investie_portfolio')) || [];
 
+        // 데모 포트폴리오 데이터 초기화
+        function initDemoPortfolio() {
+            const stored = localStorage.getItem('investie_portfolio');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        portfolio = parsed;
+                        return; // 이미 데이터가 있으면 데모 데이터 로드하지 않음
+                    }
+                } catch (e) {
+                    console.error('포트폴리오 데이터 파싱 오류:', e);
+                }
+            }
+            
+            // 포트폴리오가 비어있으면 데모 데이터 로드
+            if (portfolio.length === 0) {
+                const demoPortfolio = [
+                    { name: 'JNJ', buyPrice: 145000, quantity: 5, currentPrice: 152000 },
+                    { name: 'PFE', buyPrice: 38000, quantity: 10, currentPrice: 39500 },
+                    { name: 'ABBV', buyPrice: 125000, quantity: 8, currentPrice: 132000 },
+                    { name: 'TDOC', buyPrice: 25000, quantity: 20, currentPrice: 26500 },
+                    { name: 'CVS', buyPrice: 75000, quantity: 6, currentPrice: 78000 },
+                    { name: 'BIIB', buyPrice: 280000, quantity: 3, currentPrice: 295000 },
+                    { name: 'NVS', buyPrice: 95000, quantity: 7, currentPrice: 98000 },
+                    { name: 'LLY', buyPrice: 420000, quantity: 2, currentPrice: 445000 },
+                    { name: 'MRK', buyPrice: 98000, quantity: 5, currentPrice: 102000 },
+                    { name: 'GSK', buyPrice: 45000, quantity: 12, currentPrice: 47000 }
+                ];
+                
+                portfolio = demoPortfolio;
+                localStorage.setItem('investie_portfolio', JSON.stringify(portfolio));
+                console.log('데모 포트폴리오 로드 완료:', portfolio.length, '개 종목');
+            }
+        }
+
         function renderPortfolio() {
             const portfolioList = document.getElementById('portfolioList');
             if (portfolio.length === 0) {
-                portfolioList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">포트폴리오가 비어있습니다.</p>';
+                portfolioList.innerHTML = `
+                    <p style="text-align: center; color: #666; padding: 20px;">포트폴리오가 비어있습니다.</p>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="initDemoPortfolio(); renderPortfolio();" class="btn" style="background: #667eea; color: white; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-size: 1em; font-weight: 600;">
+                            🎯 데모 포트폴리오 로드하기
+                        </button>
+                    </div>
+                `;
                 return;
             }
 
@@ -1348,10 +1391,13 @@
             }
         });
 
+        // 포트폴리오 데모 데이터 초기화
+        initDemoPortfolio();
+        
         // 포트폴리오 초기 렌더링
         renderPortfolio();
 
-        // 추천 종목 목록
+        // 추천 종목 목록 (확장)
         const recommendedStocks = [
             { symbol: 'JNJ', name: '존슨앤존슨' },
             { symbol: 'PFE', name: '화이자' },
@@ -1359,7 +1405,20 @@
             { symbol: 'TDOC', name: '텔라독' },
             { symbol: 'CVS', name: 'CVS 헬스' },
             { symbol: 'BIIB', name: '바이오젠' },
-            { symbol: 'NVS', name: '노바티스' }
+            { symbol: 'NVS', name: '노바티스' },
+            { symbol: 'LLY', name: '엘리릴리' },
+            { symbol: 'MRK', name: '머크' },
+            { symbol: 'GSK', name: '글락소스미스클라인' },
+            { symbol: 'TMO', name: '써모피셔' },
+            { symbol: 'DHR', name: '다나허' },
+            { symbol: 'BMY', name: '브리스톨마이어스스퀴브' },
+            { symbol: 'AMGN', name: '앰젠' },
+            { symbol: 'GILD', name: '길리어드' },
+            { symbol: 'REGN', name: '리제너론' },
+            { symbol: 'VRTX', name: '버텍스' },
+            { symbol: 'ALNY', name: '알니람' },
+            { symbol: 'IONS', name: '아이오니스' },
+            { symbol: 'SGMO', name: '상가모' }
         ];
 
         // 가격 히스토리 저장 (localStorage)
