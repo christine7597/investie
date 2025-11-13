@@ -287,6 +287,58 @@
             font-weight: bold;
             color: #333;
         }
+
+        .recommended-stocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stock-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stock-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stock-card .symbol {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stock-card .name {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .stock-card .price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stock-card .change {
+            font-size: 0.9em;
+        }
+
+        .stock-card .change.positive {
+            color: #28a745;
+        }
+
+        .stock-card .change.negative {
+            color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -322,6 +374,14 @@
                 <button type="submit" class="btn">계산하기</button>
             </form>
             <div id="calculatorResult"></div>
+            
+            <!-- 추천 종목 현황 -->
+            <div style="margin-top: 40px;">
+                <h2 style="margin-bottom: 20px;">📊 추천 종목 현황</h2>
+                <div id="recommendedStocks" class="recommended-stocks-grid">
+                    <div class="loading"><div class="spinner"></div>주식 정보를 불러오는 중...</div>
+                </div>
+            </div>
         </div>
 
         <!-- 포트폴리오 탭 -->
@@ -723,6 +783,87 @@
 
         // 포트폴리오 초기 렌더링
         renderPortfolio();
+
+        // 추천 종목 목록
+        const recommendedStocks = [
+            { symbol: 'JNJ', name: '존슨앤존슨' },
+            { symbol: 'PFE', name: '화이자' },
+            { symbol: 'ABBV', name: '애브비' },
+            { symbol: 'TDOC', name: '텔라독' },
+            { symbol: 'CVS', name: 'CVS 헬스' },
+            { symbol: 'BIIB', name: '바이오젠' },
+            { symbol: 'NVS', name: '노바티스' }
+        ];
+
+        // 주식 정보 조회 함수
+        async function fetchStockPrice(symbol) {
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                
+                if (data.contents) {
+                    const stockData = JSON.parse(data.contents);
+                    const quote = stockData.chart?.result?.[0]?.meta;
+                    
+                    if (quote) {
+                        const price = quote.regularMarketPrice || quote.previousClose;
+                        const change = (quote.regularMarketPrice || quote.previousClose) - quote.previousClose;
+                        const changePercent = (change / quote.previousClose) * 100;
+                        
+                        return {
+                            price: price,
+                            change: change,
+                            changePercent: changePercent
+                        };
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.error(`Error fetching ${symbol}:`, error);
+                return null;
+            }
+        }
+
+        // 추천 종목 현황 자동 로드
+        async function loadRecommendedStocks() {
+            const stocksDiv = document.getElementById('recommendedStocks');
+            stocksDiv.innerHTML = '<div class="loading"><div class="spinner"></div>주식 정보를 불러오는 중...</div>';
+
+            const stockPromises = recommendedStocks.map(async (stock) => {
+                const data = await fetchStockPrice(stock.symbol);
+                return { ...stock, ...data };
+            });
+
+            const stocksData = await Promise.all(stockPromises);
+
+            stocksDiv.innerHTML = stocksData.map(stock => {
+                if (stock.price) {
+                    return `
+                        <div class="stock-card">
+                            <div class="symbol">${stock.symbol}</div>
+                            <div class="name">${stock.name}</div>
+                            <div class="price">$${stock.price.toFixed(2)}</div>
+                            <div class="change ${stock.change >= 0 ? 'positive' : 'negative'}">
+                                ${stock.change >= 0 ? '+' : ''}$${stock.change.toFixed(2)} 
+                                (${stock.change >= 0 ? '+' : ''}${stock.changePercent.toFixed(2)}%)
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="stock-card">
+                            <div class="symbol">${stock.symbol}</div>
+                            <div class="name">${stock.name}</div>
+                            <div class="price" style="color: #999;">조회 실패</div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        // 페이지 로드 시 추천 종목 자동 로드
+        loadRecommendedStocks();
     </script>
 </body>
 </html>
